@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Filmes" ALTER COLUMN "year" SET DATA TYPE TEXT;
