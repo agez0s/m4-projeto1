@@ -7,7 +7,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
-import { User, Filmes } from '@prisma/client';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -90,28 +90,5 @@ export class UsersService {
     return {
       message: 'Usuário deletado com sucesso',
     };
-  }
-  async addList(user: User, filmeId: string) {
-    const filme = await this.db.filmes.findUnique({
-      where: { id: filmeId },
-    });
-    if (!filme) {
-      throw new NotFoundException('ID de filme não encontrado!');
-    }
-    const userFilme = await this.db.user.update({
-      where: { id: user.id },
-      data: {
-        filmes: {
-          connect: {
-            id: filme.id,
-          },
-        },
-      },
-      include: {
-        filmes: true,
-      },
-    });
-    delete userFilme.password;
-    return userFilme;
   }
 }

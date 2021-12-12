@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Filmes } from '@prisma/client';
+import { Filmes, User } from '@prisma/client';
 
 @Injectable()
 export class FilmesService {
@@ -62,5 +62,64 @@ export class FilmesService {
     return {
       message: `Filme ${filme.name} (${filme.year}) apagado com sucesso.`,
     };
+  }
+
+  async assistir(user: User, id: string): Promise<{ message: string }> {
+    const assistiu = await this.db.user.findUnique({
+      where: { id: user.id },
+      select: {
+        filmes: {
+          where: {
+            id: id,
+          },
+        },
+      },
+    });
+
+    if (!assistiu.filmes[0]) {
+      //não assistiu. ve se o ID existe
+      const filme = await this.db.filmes.findUnique({
+        where: { id: id },
+      });
+      if (!filme) {
+        throw new NotFoundException('ID de filme não encontrado!');
+      }
+      await this.db.user.update({
+        where: { id: user.id },
+        data: {
+          filmes: {
+            connect: {
+              id: filme.id,
+            },
+          },
+        },
+      });
+
+      return {
+        message: `Marcou ${filme.name} (${filme.year}) como assistido em sua biblioteca.`,
+      };
+    } else {
+      //não assistiu. ve se o ID existe
+      const filme = await this.db.filmes.findUnique({
+        where: { id: id },
+      });
+      if (!filme) {
+        throw new NotFoundException('ID de filme não encontrado!');
+      }
+      await this.db.user.update({
+        where: { id: user.id },
+        data: {
+          filmes: {
+            disconnect: {
+              id: filme.id,
+            },
+          },
+        },
+      });
+
+      return {
+        message: `Marcou ${filme.name} (${filme.year}) como NÃO assistido em sua biblioteca.`,
+      };
+    }
   }
 }

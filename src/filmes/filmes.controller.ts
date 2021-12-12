@@ -13,16 +13,20 @@ import {
 import { FilmesService } from './filmes.service';
 import { Filmes } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import AuthUser from 'src/auth/authuser';
+import { User } from '@prisma/client';
 
 @Controller('filmes')
 export class FilmesController {
   constructor(private readonly filmesService: FilmesService) {}
 
+  @UseGuards(AuthGuard())
   @Post('add')
   createFilme(@Body() dados: CreateFilmeDto): Promise<Filmes> {
     return this.filmesService.create(dados);
   }
 
+  @UseGuards(AuthGuard())
   @Patch('edit/:id')
   updateFilme(
     @Param('id') id: string,
@@ -42,8 +46,18 @@ export class FilmesController {
     return this.filmesService.findAll();
   }
 
+  @UseGuards(AuthGuard())
   @Delete('delete/:id')
   delete(@Param('id') id: string): Promise<{ message: string }> {
     return this.filmesService.deleteOne(id);
+  }
+
+  @UseGuards(AuthGuard())
+  @Post('watch/:id')
+  Assistir(
+    @AuthUser() user: User,
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    return this.filmesService.assistir(user, id);
   }
 }
